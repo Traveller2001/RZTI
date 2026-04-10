@@ -1300,7 +1300,8 @@
       shuffledQuestions: [],
       answers: {},
       previewMode: false,
-      currentIndex: 0
+      currentIndex: 0,
+      navigating: false
     };
 
     const screens = {
@@ -1385,11 +1386,9 @@
       `;
       questionList.appendChild(card);
 
-      let navigating = false;
-
       card.querySelectorAll('input[type="radio"]').forEach(input => {
         input.addEventListener('change', (e) => {
-          if (navigating) return;
+          if (app.navigating) return;
           const { name, value } = e.target;
           app.answers[name] = Number(value);
 
@@ -1400,14 +1399,14 @@
           updateProgress();
 
           // 自动跳转下一题，加锁防止快速点击
-          navigating = true;
+          app.navigating = true;
           setTimeout(() => {
             const updatedVisible = getVisibleQuestions();
             if (app.currentIndex < updatedVisible.length - 1) {
               app.currentIndex++;
               renderCurrentQuestion();
             }
-            navigating = false;
+            app.navigating = false;
           }, 250);
         });
       });
