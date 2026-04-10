@@ -627,6 +627,7 @@
           <div class="hint" id="testHint"></div>
           <div class="nav-btns">
             <button id="prevBtn" class="btn-secondary">上一题</button>
+            <button id="nextBtn" class="btn-secondary">下一题</button>
             <button id="backIntroBtn" class="btn-secondary">返回首页</button>
             <button id="submitBtn" class="btn-primary" disabled>提交并查看结果</button>
           </div>
@@ -1316,6 +1317,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const testHint = document.getElementById('testHint');
     const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
     function showScreen(name) {
       Object.entries(screens).forEach(([key, el]) => {
@@ -1386,23 +1388,6 @@
       `;
       questionList.appendChild(card);
 
-      // 如果当前题已答过且不是最后一题，显示"下一题"按钮
-      const visibleQs = getVisibleQuestions();
-      if (app.answers[q.id] !== undefined && index < visibleQs.length - 1) {
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'btn-secondary';
-        nextBtn.textContent = '下一题';
-        nextBtn.style.marginTop = '12px';
-        nextBtn.addEventListener('click', () => {
-          if (app.navigating) return;
-          app.navigating = true;
-          app.currentIndex++;
-          renderCurrentQuestion();
-          app.navigating = false;
-        });
-        questionList.appendChild(nextBtn);
-      }
-
       card.querySelectorAll('input[type="radio"]').forEach(input => {
         input.addEventListener('change', (e) => {
           if (app.navigating) return;
@@ -1430,6 +1415,10 @@
 
       // 更新导航按钮状态
       prevBtn.style.display = index === 0 ? 'none' : '';
+      const visibleQs = getVisibleQuestions();
+      const isAnswered = app.answers[q.id] !== undefined;
+      const isLast = index >= visibleQs.length - 1;
+      nextBtn.style.display = (isAnswered && !isLast) ? '' : 'none';
       updateProgress();
 
       // 滚动到顶部
@@ -1454,6 +1443,14 @@
     prevBtn.addEventListener('click', () => {
       if (app.currentIndex > 0) {
         app.currentIndex--;
+        renderCurrentQuestion();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      const visibleQs = getVisibleQuestions();
+      if (app.currentIndex < visibleQs.length - 1) {
+        app.currentIndex++;
         renderCurrentQuestion();
       }
     });
