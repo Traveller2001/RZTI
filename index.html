@@ -301,6 +301,16 @@
       line-height: 1.7;
     }
 
+    .nav-btns {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .question {
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
     .result-layout {
       display: grid;
       gap: 18px;
@@ -397,7 +407,19 @@
       font-size: 14px;
       line-height: 1.4;
     }
-    .analysis-box h3, .dim-box h3, .note-box h3 {
+    .type-desc-inline {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .type-desc-inline p {
+      margin: 0;
+      color: #6b7084;
+      font-size: 14px;
+      line-height: 1.85;
+      white-space: pre-wrap;
+    }
+    .dim-box h3, .note-box h3 {
       font-size: 16px;
       margin-bottom: 12px;
     }
@@ -602,8 +624,9 @@
         <div id="questionList" class="question-list"></div>
 
         <div class="actions-bottom">
-          <div class="hint" id="testHint">全选完才会放行。论文可以拖，这个不行。</div>
-          <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <div class="hint" id="testHint"></div>
+          <div class="nav-btns">
+            <button id="prevBtn" class="btn-secondary">上一题</button>
             <button id="backIntroBtn" class="btn-secondary">返回首页</button>
             <button id="submitBtn" class="btn-primary" disabled>提交并查看结果</button>
           </div>
@@ -625,12 +648,10 @@
               <div class="type-name" id="resultTypeName">PAPER（论文机器）</div>
               <div class="match" id="matchBadge">匹配度 92%</div>
               <div class="type-subname" id="resultTypeSub"></div>
+              <div class="type-desc-inline">
+                <p id="resultDesc"></p>
+              </div>
             </div>
-          </div>
-
-          <div class="analysis-box">
-            <h3>该人格的简单解读</h3>
-            <p id="resultDesc"></p>
           </div>
 
           <div class="dim-box">
@@ -1278,7 +1299,8 @@
     const app = {
       shuffledQuestions: [],
       answers: {},
-      previewMode: false
+      previewMode: false,
+      currentIndex: 0
     };
 
     const screens = {
@@ -1292,6 +1314,7 @@
     const progressText = document.getElementById('progressText');
     const submitBtn = document.getElementById('submitBtn');
     const testHint = document.getElementById('testHint');
+    const prevBtn = document.getElementById('prevBtn');
 
     function showScreen(name) {
       Object.entries(screens).forEach(([key, el]) => {
@@ -1323,53 +1346,77 @@
       return app.previewMode ? dimensionMeta[q.dim].name : '维度已隐藏';
     }
 
-    function renderQuestions() {
+    function goToQuestion(index) {
       const visibleQuestions = getVisibleQuestions();
-      questionList.innerHTML = '';
-      visibleQuestions.forEach((q, index) => {
-        const card = document.createElement('article');
-        card.className = 'question';
-        card.innerHTML = `
-          <div class="question-meta">
-            <div class="badge">第 ${index + 1} 题</div>
-            <div>${getQuestionMetaLabel(q)}</div>
-          </div>
-          <div class="question-title">${q.text}</div>
-          <div class="options">
-            ${q.options.map((opt, i) => {
-              const code = ['A', 'B', 'C', 'D'][i] || String(i + 1);
-              const checked = app.answers[q.id] === opt.value ? 'checked' : '';
-              return `
-                <label class="option">
-                  <input type="radio" name="${q.id}" value="${opt.value}" ${checked} />
-                  <div class="option-code">${code}</div>
-                  <div>${opt.label}</div>
-                </label>
-              `;
-            }).join('')}
-          </div>
-        `;
-        questionList.appendChild(card);
-      });
+      if (index < 0) index = 0;
+      if (index >= visibleQuestions.length) index = visibleQuestions.length - 1;
+      app.currentIndex = index;
+      renderCurrentQuestion();
+    }
 
-      questionList.querySelectorAll('input[type="radio"]').forEach(input => {
+    function renderCurrentQuestion() {
+      const visibleQuestions = getVisibleQuestions();
+      const index = app.currentIndex;
+      const q = visibleQuestions[index];
+      const total = visibleQuestions.length;
+
+      questionList.innerHTML = '';
+      const card = document.createElement('article');
+      card.className = 'question';
+      card.innerHTML = `
+        <div class="question-meta">
+          <div class="badge">第 ${index + 1} / ${total} 题</div>
+          <div>${getQuestionMetaLabel(q)}</div>
+        </div>
+        <div class="question-title">${q.text}</div>
+        <div class="options">
+          ${q.options.map((opt, i) => {
+            const code = ['A', 'B', 'C', 'D'][i] || String(i + 1);
+            const checked = app.answers[q.id] === opt.value ? 'checked' : '';
+            return `
+              <label class="option">
+                <input type="radio" name="${q.id}" value="${opt.value}" ${checked} />
+                <div class="option-code">${code}</div>
+                <div>${opt.label}</div>
+              </label>
+            `;
+          }).join('')}
+        </div>
+      `;
+      questionList.appendChild(card);
+
+      card.querySelectorAll('input[type="radio"]').forEach(input => {
         input.addEventListener('change', (e) => {
           const { name, value } = e.target;
           app.answers[name] = Number(value);
 
-          if (name === 'quit_gate_q1') {
-            if (Number(value) !== 3) {
-              delete app.answers['quit_gate_q2'];
-            }
-            renderQuestions();
-            return;
+          if (name === 'quit_gate_q1' && Number(value) !== 3) {
+            delete app.answers['quit_gate_q2'];
           }
+
+          // 自动跳转下一题，延迟一小段让用户看到选中状态
+          setTimeout(() => {
+            const updatedVisible = getVisibleQuestions();
+            if (app.currentIndex < updatedVisible.length - 1) {
+              app.currentIndex++;
+              renderCurrentQuestion();
+            } else {
+              // 最后一题，更新UI
+              updateProgress();
+            }
+          }, 300);
 
           updateProgress();
         });
       });
 
+      // 更新导航按钮状态
+      prevBtn.style.display = index === 0 ? 'none' : '';
       updateProgress();
+
+      // 滚动到顶部
+      const testWrap = document.querySelector('.test-wrap');
+      if (testWrap) testWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function updateProgress() {
@@ -1383,8 +1430,15 @@
       submitBtn.disabled = !complete;
       testHint.textContent = complete
         ? '都做完了。提交吧，让系统审判你的科研灵魂。'
-        : '全选完才会放行。论文可以拖，这个不行。';
+        : '';
     }
+
+    prevBtn.addEventListener('click', () => {
+      if (app.currentIndex > 0) {
+        app.currentIndex--;
+        renderCurrentQuestion();
+      }
+    });
 
     function sumToLevel(score) {
       if (score <= 3) return 'L';
@@ -1527,6 +1581,7 @@
     function startTest(preview = false) {
       app.previewMode = preview;
       app.answers = {};
+      app.currentIndex = 0;
       const shuffledRegular = shuffle(questions);
       const insertIndex = Math.floor(Math.random() * shuffledRegular.length) + 1;
       app.shuffledQuestions = [
@@ -1534,7 +1589,7 @@
         specialQuestions[0],
         ...shuffledRegular.slice(insertIndex)
       ];
-      renderQuestions();
+      renderCurrentQuestion();
       showScreen('test');
     }
 
