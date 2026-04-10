@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RZTI 科研人格图鉴</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #0c0e1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    .header {
+      text-align: center;
+      padding: 48px 20px 32px;
+    }
+    .header h1 {
+      font-size: 36px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header p {
+      margin-top: 8px;
+      color: #6b7084;
+      font-size: 14px;
+    }
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 0 20px 32px;
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid #2a2d40;
+      background: #14162a;
+      color: #9ca3af;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .filter-btn:hover { border-color: #6366f1; color: #c7c7ff; }
+    .filter-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+    .grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: #161830;
+      border: 1px solid #22253a;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+      position: relative;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(99, 102, 241, 0.15);
+    }
+    .card-img-wrap {
+      width: 100%;
+      aspect-ratio: 1;
+      background: #1c1e35;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .card-body {
+      padding: 14px;
+    }
+    .card-code {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .card-cn {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+    .card-intro {
+      font-size: 12px;
+      color: #6b7084;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .rarity-tag {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .rarity-legendary {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: #000;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+    .rarity-epic {
+      background: linear-gradient(135deg, #a855f7, #7c3aed);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+    }
+    .rarity-rare {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+    }
+    .rarity-uncommon {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+    }
+    .rarity-common {
+      background: #2a2d40;
+      color: #9ca3af;
+    }
+    .rarity-hidden {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .stats {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 28px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #6b7084;
+      margin-top: 2px;
+    }
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 0 20px 24px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #6b7084;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    @media (max-width: 600px) {
+      .header h1 { font-size: 28px; }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .card-body { padding: 10px; }
+      .card-code { font-size: 15px; }
+      .card-intro { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>RZTI 科研人格图鉴</h1>
+    <p>26 种科研人格 · 你集齐了几种？</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-item"><div class="stat-num">26</div><div class="stat-label">人格总数</div></div>
+    <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">大模型</div></div>
+    <div class="stat-item"><div class="stat-num">15</div><div class="stat-label">维度</div></div>
+    <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">隐藏人格</div></div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const TYPES = [
+      { code: "PAPER",  cn: "论文机器",   intro: "你不发论文，论文发你。", rarity: "rare", img: "./image_todo/PAPER/PAPER.png" },
+      { code: "NERD",   cn: "学术宅",     intro: "别跟我说impact factor，我在想一个有趣的问题。", rarity: "uncommon", img: "./image_todo/NERD/NERD.png" },
+      { code: "PI-er",  cn: "未来PI",     intro: "你不是在开组会就是在去开组会的路上。", rarity: "epic", img: "./image_todo/PI-er/PI-er.png" },
+      { code: "CAFE",   cn: "咖啡续命",   intro: "DDL是第一生产力，咖啡是第二。", rarity: "common", img: "./image_todo/CAFE/CAFE.png" },
+      { code: "REF-s",  cn: "文献仓鼠",   intro: "Zotero里3000篇，读完的30篇。", rarity: "common", img: "./image_todo/REF-s/REF-s.png" },
+      { code: "TANK",   cn: "学术坦克",   intro: "拒稿？那是审稿人的损失。", rarity: "epic", img: "./image_todo/TANK/TANK.png" },
+      { code: "SOS!",   cn: "学术求生者", intro: "我是不是不适合做科研.jpg", rarity: "common", img: "./image_todo/SOS/SOS.png" },
+      { code: "HACK",   cn: "学术黑客",   intro: "别人还在调参数，我已经换了三个方向。", rarity: "rare", img: "./image_todo/HACK/HACK.png" },
+      { code: "MONK",   cn: "学术苦行僧", intro: "十年磨一剑，磨完发现刀柄断了。", rarity: "rare", img: "./image_todo/MONK/MONK.png" },
+      { code: "RUSH",   cn: "DDL战士",    intro: "还有72小时？充足了。", rarity: "common", img: "./image_todo/RUSH/RUSH.png" },
+      { code: "BOSS",   cn: "天生导师",   intro: "组会上你总是那个画饼的人。", rarity: "epic", img: "./image_todo/BOSS/boss.png" },
+      { code: "CHILL",  cn: "佛系学者",   intro: "论文？缘分到了自然会有的。", rarity: "uncommon", img: "./image_todo/CHILL/CHILL.png" },
+      { code: "STAR",   cn: "学术新星",   intro: "好奇、敢冲、还能写，老天爷赏饭吃。", rarity: "legendary", img: "./image_todo/STAR/STAR.png" },
+      { code: "COPY",   cn: "跟风侠",     intro: "什么热做什么，从不踩空。", rarity: "common", img: "./image_todo/COPY/COPY.png" },
+      { code: "IDEA",   cn: "点子喷泉",   intro: "想法比论文多十倍。", rarity: "uncommon", img: "./image_todo/IDEA/IDEA.png" },
+      { code: "SOLO",   cn: "独行侠",     intro: "我的最佳合作者是我自己。", rarity: "uncommon", img: "./image_todo/SOLO/SOLO.png" },
+      { code: "TALK",   cn: "学术交际花", intro: "你认识的人比你读的论文还多。", rarity: "rare", img: "./image_todo/TALK/TALK.png" },
+      { code: "GRIND",  cn: "卷王",       intro: "实验室的灯为你而亮。", rarity: "rare", img: "./image_todo/GRIND/GRIND.png" },
+      { code: "SLIDE",  cn: "摸鱼大师",   intro: "用最少的力气拿到学位。", rarity: "uncommon", img: "./image_todo/SLIDE/SLIDE.png" },
+      { code: "REVIEW", cn: "审稿狂魔",   intro: "自己的论文不写，别人的论文看得很仔细。", rarity: "rare", img: "./image_todo/REVIEW/REVIEW.png" },
+      { code: "GRANT",  cn: "经费猎人",   intro: "写本子比写论文还溜。", rarity: "epic", img: "./image_todo/GRANT/GRANT.png" },
+      { code: "PIVOT",  cn: "转向大师",   intro: "换方向比换衣服还勤。", rarity: "uncommon", img: "./image_todo/PIVOT/PIVOT.png" },
+      { code: "BURN",   cn: "学术燃尽",   intro: "曾经热爱科研，现在热爱下班。", rarity: "rare", img: "./image_todo/BURN/BURN.png" },
+      { code: "CLEAN",  cn: "数据洁癖",   intro: "你的代码注释比代码还多。", rarity: "uncommon", img: "./image_todo/CLEAN/CLEAN.png" },
+      { code: "QUIT",   cn: "摆烂者",     intro: "科研？不熟，我先去考个公。", rarity: "hidden", img: "./image_todo/QUIT/QUIT.png" },
+      { code: "404",    cn: "查无此人",   intro: "你的科研人格超出了已知分类。", rarity: "hidden", img: "./image_todo/404/404.png" },
+    ];
+
+    const RARITY_META = {
+      legendary: { label: "传说", color: "#f59e0b", order: 0 },
+      epic:      { label: "史诗", color: "#a855f7", order: 1 },
+      rare:      { label: "稀有", color: "#6366f1", order: 2 },
+      uncommon:  { label: "优秀", color: "#22c55e", order: 3 },
+      common:    { label: "普通", color: "#6b7084", order: 4 },
+      hidden:    { label: "隐藏", color: "#ef4444", order: 5 },
+    };
+
+    // Render legend
+    const legendEl = document.getElementById('legend');
+    Object.entries(RARITY_META).forEach(([key, meta]) => {
+      const count = TYPES.filter(t => t.rarity === key).length;
+      legendEl.innerHTML += `<div class="legend-item"><div class="legend-dot" style="background:${meta.color}"></div>${meta.label} (${count})</div>`;
+    });
+
+    // Render filters
+    const filtersEl = document.getElementById('filters');
+    let currentFilter = 'all';
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-btn active';
+    allBtn.textContent = '全部';
+    allBtn.onclick = () => { currentFilter = 'all'; renderGrid(); updateBtns(); };
+    filtersEl.appendChild(allBtn);
+
+    Object.entries(RARITY_META).forEach(([key, meta]) => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn';
+      btn.dataset.rarity = key;
+      btn.textContent = meta.label;
+      btn.onclick = () => { currentFilter = key; renderGrid(); updateBtns(); };
+      filtersEl.appendChild(btn);
+    });
+
+    function updateBtns() {
+      filtersEl.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.toggle('active', currentFilter === (b.dataset.rarity || 'all'));
+      });
+    }
+
+    // Render grid
+    const gridEl = document.getElementById('grid');
+    function renderGrid() {
+      const filtered = currentFilter === 'all' ? TYPES : TYPES.filter(t => t.rarity === currentFilter);
+      // Sort by rarity order
+      filtered.sort((a, b) => RARITY_META[a.rarity].order - RARITY_META[b.rarity].order);
+
+      gridEl.innerHTML = filtered.map(t => {
+        const meta = RARITY_META[t.rarity];
+        return `
+          <div class="card">
+            <div class="rarity-tag rarity-${t.rarity}">${meta.label}</div>
+            <div class="card-img-wrap">
+              <img src="${t.img}" alt="${t.code}" loading="lazy" />
+            </div>
+            <div class="card-body">
+              <div class="card-code">${t.code}</div>
+              <div class="card-cn">${t.cn}</div>
+              <div class="card-intro">${t.intro}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    renderGrid();
+  </script>
+</body>
+</html>
