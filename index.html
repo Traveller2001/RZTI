@@ -1183,10 +1183,10 @@
     Object.keys(TYPE_LIBRARY).forEach(code => {
       const safeName = code.replace('!', '');
       // 尝试 png，fallback jpg
-      TYPE_IMAGES[code] = `./images/${safeName}/${safeName}.png`;
+      TYPE_IMAGES[code] = `./images/${safeName}/${safeName}.webp`;
     });
     // 特殊处理：BOSS 文件名是小写
-    TYPE_IMAGES["BOSS"] = "./images/BOSS/boss.png";
+    TYPE_IMAGES["BOSS"] = "./images/BOSS/boss.webp";
 
     const NORMAL_TYPES = [
       { "code": "PAPER",  "pattern": "MHM-HMH-MMM-HHH-HHM" },
