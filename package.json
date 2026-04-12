@@ -1,0 +1,7 @@
+{
+  "name": "abti-site",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^10.0.11"
+  }
+}

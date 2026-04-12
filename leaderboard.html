@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABTI 人格排行榜</title>
+  <style>
+    :root {
+      --bg: #09111f;
+      --panel: rgba(12, 22, 40, 0.84);
+      --panel-strong: #0f1d35;
+      --text: #eff5ff;
+      --muted: #8da0be;
+      --line: rgba(160, 180, 220, 0.18);
+      --accent: #7c9cff;
+      --accent-soft: rgba(124, 156, 255, 0.16);
+      --gold: #f6c768;
+      --silver: #c6d4ff;
+      --bronze: #f0a06b;
+      --shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124, 156, 255, 0.24), transparent 28%),
+        radial-gradient(circle at top right, rgba(246, 199, 104, 0.14), transparent 20%),
+        linear-gradient(180deg, #09111f 0%, #0b1528 48%, #08101d 100%);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero {
+      padding: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124, 156, 255, 0.28) 0%, rgba(124, 156, 255, 0) 68%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+      color: #b8c6e8;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .hero-copy h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-copy p {
+      margin: 14px 0 0;
+      max-width: 700px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .link-btn,
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      font: inherit;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .link-btn:hover,
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(124, 156, 255, 0.55);
+    }
+
+    .link-btn {
+      background: linear-gradient(135deg, #8cabff, #6787f7);
+      border-color: transparent;
+      color: #071120;
+      font-weight: 800;
+    }
+
+    .ghost-btn {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    .meta-row {
+      margin-top: 22px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-card {
+      padding: 20px;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary-value {
+      margin-top: 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .summary-note {
+      margin-top: 8px;
+      color: #b7c5df;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .panel {
+      margin-top: 18px;
+      padding: 22px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+
+    .panel-head p,
+    .panel-head .status {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .podium {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .podium-card {
+      position: relative;
+      min-height: 100%;
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+      overflow: hidden;
+    }
+
+    .podium-card.rank-1 { box-shadow: inset 0 0 0 1px rgba(246, 199, 104, 0.25); }
+    .podium-card.rank-2 { box-shadow: inset 0 0 0 1px rgba(198, 212, 255, 0.22); }
+    .podium-card.rank-3 { box-shadow: inset 0 0 0 1px rgba(240, 160, 107, 0.24); }
+
+    .podium-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-weight: 900;
+      color: #09111f;
+    }
+
+    .podium-card.rank-1 .podium-rank { background: var(--gold); }
+    .podium-card.rank-2 .podium-rank { background: var(--silver); }
+    .podium-card.rank-3 .podium-rank { background: var(--bronze); }
+
+    .podium-image {
+      width: 100%;
+      aspect-ratio: 1;
+      margin-top: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .podium-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .podium-code {
+      margin-top: 14px;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .podium-cn {
+      margin-top: 2px;
+      color: #bfd0ef;
+      font-size: 14px;
+    }
+
+    .podium-stats {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mini-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #d5e1f7;
+      font-size: 12px;
+    }
+
+    .leaderboard-table {
+      display: grid;
+      gap: 10px;
+    }
+
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 68px minmax(0, 1.5fr) 110px 92px minmax(160px, 1fr);
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .leaderboard-row[data-rank="1"] { background: rgba(246, 199, 104, 0.08); }
+    .leaderboard-row[data-rank="2"] { background: rgba(198, 212, 255, 0.07); }
+    .leaderboard-row[data-rank="3"] { background: rgba(240, 160, 107, 0.07); }
+
+    .rank-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(124, 156, 255, 0.12);
+      color: #dce7ff;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .persona-cell {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .persona-thumb {
+      width: 56px;
+      height: 56px;
+      flex: 0 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .persona-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .persona-info {
+      min-width: 0;
+    }
+
+    .persona-code {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .persona-name {
+      margin-top: 2px;
+      color: #b7c5df;
+      font-size: 13px;
+    }
+
+    .count-cell,
+    .share-cell {
+      font-size: 20px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .count-cell small,
+    .share-cell small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .bar-cell {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-track {
+      position: relative;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .bar-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--bar, 0%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, #f6c768, #7c9cff);
+    }
+
+    .bar-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty-state,
+    .error-state {
+      padding: 24px;
+      border-radius: 18px;
+      border: 1px dashed var(--line);
+      color: #c9d6eb;
+      background: rgba(255, 255, 255, 0.03);
+      line-height: 1.8;
+    }
+
+    .footnote {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 980px) {
+      .summary-grid,
+      .podium {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .summary-grid .summary-card:last-child,
+      .podium .podium-card:last-child {
+        grid-column: span 2;
+      }
+
+      .leaderboard-row {
+        grid-template-columns: 60px minmax(0, 1fr) 88px 88px;
+      }
+
+      .bar-cell {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100%, calc(100% - 20px));
+        padding-top: 14px;
+      }
+
+      .hero,
+      .panel,
+      .summary-card {
+        padding: 18px;
+      }
+
+      .hero-copy h1 {
+        font-size: 34px;
+      }
+
+      .summary-grid,
+      .podium {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid .summary-card:last-child,
+      .podium .podium-card:last-child {
+        grid-column: auto;
+      }
+
+      .leaderboard-row {
+        grid-template-columns: 48px minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .count-cell,
+      .share-cell {
+        text-align: left;
+      }
+
+      .count-cell,
+      .share-cell,
+      .bar-cell {
+        grid-column: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero card">
+      <div class="eyebrow">ABTI Stats Board</div>
+      <div class="hero-top">
+        <div class="hero-copy">
+          <h1>人格排行榜</h1>
+          <p>这里统计两类数据：首页打开次数，以及用户完成测试后得到的最终人格分布。网站主体仍是静态页，数据由 Netlify Functions 写入并汇总。</p>
+        </div>
+
+        <div class="hero-actions">
+          <a class="link-btn" href="./index.html">返回测试</a>
+          <a class="ghost-btn" href="./gallery.html">人格图鉴</a>
+          <button id="refreshBtn" class="ghost-btn" type="button">刷新统计</button>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <span id="updatedAt">最近更新：读取中...</span>
+        <span>统计口径：访问请求数按首页打开次数统计；人格排行按完成测验后的最终结果统计。</span>
+      </div>
+    </section>
+
+    <section class="summary-grid">
+      <article class="summary-card card">
+        <div class="summary-label">访问请求数</div>
+        <div class="summary-value" id="totalVisits">--</div>
+        <div class="summary-note">首页被打开的次数。</div>
+      </article>
+
+      <article class="summary-card card">
+        <div class="summary-label">完成测试数</div>
+        <div class="summary-value" id="totalResults">--</div>
+        <div class="summary-note">成功测完并进入结果页的次数。</div>
+      </article>
+
+      <article class="summary-card card">
+        <div class="summary-label">已命中人格数</div>
+        <div class="summary-value" id="uniquePersonasHit">--</div>
+        <div class="summary-note">目前至少出现过一次的人格类型数量。</div>
+      </article>
+
+      <article class="summary-card card">
+        <div class="summary-label">当前榜首</div>
+        <div class="summary-value" id="leaderName">--</div>
+        <div class="summary-note" id="leaderNote">等待统计数据...</div>
+      </article>
+    </section>
+
+    <section class="panel card">
+      <div class="panel-head">
+        <div>
+          <h2>榜单前三</h2>
+          <p>按最终人格结果的累计次数排序。</p>
+        </div>
+        <div class="status" id="podiumStatus">正在加载...</div>
+      </div>
+      <div id="podium" class="podium"></div>
+    </section>
+
+    <section class="panel card">
+      <div class="panel-head">
+        <div>
+          <h2>完整排行榜</h2>
+          <p>26 种人格全部展示，未出现的类型也会保留在榜单里。</p>
+        </div>
+        <div class="status" id="tableStatus">正在加载...</div>
+      </div>
+      <div id="leaderboardTable" class="leaderboard-table"></div>
+    </section>
+
+    <div class="footnote">
+      页面使用 `/.netlify/functions/abti-analytics-track` 和 `/.netlify/functions/abti-analytics-summary`。如果这里一直显示加载失败，通常说明 Netlify 还没有安装依赖或函数还没部署上去。
+    </div>
+  </div>
+
+  <script>
+    const SUMMARY_ENDPOINT = '/.netlify/functions/abti-analytics-summary';
+    const TYPES = [
+      { code: "PAPER",  cn: "论文机器",   intro: "你不发论文，论文发你。", img: "./images/PAPER/PAPER.webp" },
+      { code: "NERD",   cn: "学术宅",     intro: "别跟我说impact factor，我在想一个有趣的问题。", img: "./images/NERD/NERD.webp" },
+      { code: "PI-er",  cn: "未来PI",     intro: "你不是在开组会就是在去开组会的路上。", img: "./images/PI-er/PI-er.webp" },
+      { code: "CAFE",   cn: "咖啡续命",   intro: "DDL是第一生产力，咖啡是第二。", img: "./images/CAFE/CAFE.webp" },
+      { code: "REF-s",  cn: "文献仓鼠",   intro: "Zotero里3000篇，读完的30篇。", img: "./images/REF-s/REF-s.webp" },
+      { code: "TANK",   cn: "学术坦克",   intro: "拒稿？那是审稿人的损失。", img: "./images/TANK/TANK.webp" },
+      { code: "SOS!",   cn: "学术求生者", intro: "我是不是不适合做科研.jpg", img: "./images/SOS/SOS.webp" },
+      { code: "HACK",   cn: "学术黑客",   intro: "别人还在调参数，我已经换了三个方向。", img: "./images/HACK/HACK.webp" },
+      { code: "MONK",   cn: "学术苦行僧", intro: "十年磨一剑，磨完发现刀柄断了。", img: "./images/MONK/MONK.webp" },
+      { code: "RUSH",   cn: "DDL战士",    intro: "还有72小时？充足了。", img: "./images/RUSH/RUSH.webp" },
+      { code: "BOSS",   cn: "天生导师",   intro: "组会上你总是那个画饼的人。", img: "./images/BOSS/boss.webp" },
+      { code: "CHILL",  cn: "佛系学者",   intro: "论文？缘分到了自然会有的。", img: "./images/CHILL/CHILL.webp" },
+      { code: "STAR",   cn: "学术新星",   intro: "好奇、敢冲、还能写，老天爷赏饭吃。", img: "./images/STAR/STAR.webp" },
+      { code: "COPY",   cn: "跟风侠",     intro: "什么热做什么，从不踩空。", img: "./images/COPY/COPY.webp" },
+      { code: "IDEA",   cn: "点子喷泉",   intro: "想法比论文多十倍。", img: "./images/IDEA/IDEA.webp" },
+      { code: "SOLO",   cn: "独行侠",     intro: "我的最佳合作者是我自己。", img: "./images/SOLO/SOLO.webp" },
+      { code: "TALK",   cn: "学术交际花", intro: "你认识的人比你读的论文还多。", img: "./images/TALK/TALK.webp" },
+      { code: "GRIND",  cn: "卷王",       intro: "实验室的灯为你而亮。", img: "./images/GRIND/GRIND.webp" },
+      { code: "SLIDE",  cn: "摸鱼大师",   intro: "用最少的力气拿到学位。", img: "./images/SLIDE/SLIDE.webp" },
+      { code: "REVIEW", cn: "审稿狂魔",   intro: "自己的论文不写，别人的论文看得很仔细。", img: "./images/REVIEW/REVIEW.webp" },
+      { code: "GRANT",  cn: "经费猎人",   intro: "写本子比写论文还溜。", img: "./images/GRANT/GRANT.webp" },
+      { code: "PIVOT",  cn: "转向大师",   intro: "换方向比换衣服还勤。", img: "./images/PIVOT/PIVOT.webp" },
+      { code: "BURN",   cn: "学术燃尽",   intro: "曾经热爱科研，现在热爱下班。", img: "./images/BURN/BURN.webp" },
+      { code: "CLEAN",  cn: "数据洁癖",   intro: "你的代码注释比代码还多。", img: "./images/CLEAN/CLEAN.webp" },
+      { code: "QUIT",   cn: "摆烂者",     intro: "科研？不熟，我先去考个公。", img: "./images/QUIT/QUIT.webp" },
+      { code: "404",    cn: "查无此人",   intro: "你的科研人格超出了已知分类。", img: "./images/404/404.webp" }
+    ];
+
+    const TYPE_MAP = Object.fromEntries(TYPES.map((item) => [item.code, item]));
+    const numberFormatter = new Intl.NumberFormat('zh-CN');
+
+    function formatNumber(value) {
+      return numberFormatter.format(value || 0);
+    }
+
+    function formatUpdatedAt(value) {
+      if (!value) return '最近更新：暂无数据';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '最近更新：暂无数据';
+      const text = new Intl.DateTimeFormat('zh-CN', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      }).format(date);
+      return `最近更新：${text}`;
+    }
+
+    function renderError(message) {
+      document.getElementById('updatedAt').textContent = '最近更新：读取失败';
+      document.getElementById('podiumStatus').textContent = '加载失败';
+      document.getElementById('tableStatus').textContent = '加载失败';
+      document.getElementById('podium').innerHTML = `<div class="error-state">${message}</div>`;
+      document.getElementById('leaderboardTable').innerHTML = `<div class="error-state">${message}</div>`;
+      document.getElementById('leaderName').textContent = '--';
+      document.getElementById('leaderNote').textContent = '函数不可用或尚未部署完成。';
+    }
+
+    function renderPodium(ranking, totalResults) {
+      const podium = document.getElementById('podium');
+      if (!totalResults) {
+        podium.innerHTML = '<div class="empty-state">还没有已完成的测试记录。等第一批用户测完后，这里会自动出现前三人格。</div>';
+        return;
+      }
+
+      podium.innerHTML = ranking.slice(0, 3).map((item, index) => {
+        const meta = TYPE_MAP[item.code] || { code: item.code, cn: item.code, intro: '', img: '' };
+        return `
+          <article class="podium-card rank-${index + 1}">
+            <div class="podium-rank">#${index + 1}</div>
+            <div class="podium-image">
+              <img src="${meta.img}" alt="${meta.code}（${meta.cn}）" loading="lazy" />
+            </div>
+            <div class="podium-code">${meta.code}</div>
+            <div class="podium-cn">${meta.cn}</div>
+            <div class="podium-stats">
+              <div class="mini-chip">次数 ${formatNumber(item.count)}</div>
+              <div class="mini-chip">占比 ${item.share}%</div>
+            </div>
+            <div class="summary-note">${meta.intro}</div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderTable(ranking, totalResults) {
+      const table = document.getElementById('leaderboardTable');
+      table.innerHTML = ranking.map((item, index) => {
+        const meta = TYPE_MAP[item.code] || { code: item.code, cn: item.code, img: '' };
+        const barWidth = totalResults ? `${Math.max(item.share, item.count > 0 ? 2 : 0)}%` : '0%';
+        return `
+          <article class="leaderboard-row" data-rank="${index + 1}">
+            <div class="rank-badge">#${index + 1}</div>
+            <div class="persona-cell">
+              <div class="persona-thumb">
+                <img src="${meta.img}" alt="${meta.code}（${meta.cn}）" loading="lazy" />
+              </div>
+              <div class="persona-info">
+                <div class="persona-code">${meta.code}</div>
+                <div class="persona-name">${meta.cn}</div>
+              </div>
+            </div>
+            <div class="count-cell">
+              ${formatNumber(item.count)}
+              <small>累计次数</small>
+            </div>
+            <div class="share-cell">
+              ${item.share}%
+              <small>结果占比</small>
+            </div>
+            <div class="bar-cell">
+              <div class="bar-track">
+                <div class="bar-fill" style="--bar:${barWidth};"></div>
+              </div>
+              <div class="bar-label">${item.count > 0 ? `${meta.code} 当前占全部结果的 ${item.share}%` : '暂时还没人测出这个人格'}</div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderStats(data) {
+      const ranking = data.ranking.map((item) => ({
+        ...item,
+        ...(TYPE_MAP[item.code] || {})
+      }));
+      const leader = ranking[0];
+
+      document.getElementById('totalVisits').textContent = formatNumber(data.totalVisits);
+      document.getElementById('totalResults').textContent = formatNumber(data.totalResults);
+      document.getElementById('uniquePersonasHit').textContent = formatNumber(data.uniquePersonasHit);
+      document.getElementById('updatedAt').textContent = formatUpdatedAt(data.lastUpdatedAt);
+      document.getElementById('podiumStatus').textContent = data.totalResults ? '已按最新结果刷新' : '暂无结果数据';
+      document.getElementById('tableStatus').textContent = `共展示 ${ranking.length} 种人格`;
+
+      if (leader && leader.count > 0) {
+        document.getElementById('leaderName').textContent = `${leader.code}`;
+        document.getElementById('leaderNote').textContent = `${leader.cn} 目前出现 ${formatNumber(leader.count)} 次，占比 ${leader.share}%。`;
+      } else {
+        document.getElementById('leaderName').textContent = '暂无';
+        document.getElementById('leaderNote').textContent = '还没有任何已完成测试记录。';
+      }
+
+      renderPodium(ranking, data.totalResults);
+      renderTable(ranking, data.totalResults);
+    }
+
+    async function loadStats() {
+      try {
+        const response = await fetch(SUMMARY_ENDPOINT, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`统计接口返回 ${response.status}`);
+        }
+
+        const data = await response.json();
+        renderStats(data);
+      } catch (error) {
+        renderError(`统计暂时加载失败。请确认 Netlify 已成功安装依赖并部署 Functions。错误信息：${error.message}`);
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadStats);
+    loadStats();
+  </script>
+</body>
+</html>
